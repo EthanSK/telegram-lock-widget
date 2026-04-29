@@ -24,28 +24,23 @@ struct TelegramWidgetEntryView: View {
     @Environment(\.widgetFamily) private var family
 
     var body: some View {
-        let launchURL = URL(string: "tg://")!
-
         Group {
             switch family {
-            case .accessoryCircular:
-                CircularBadge()
-            case .accessoryRectangular:
-                RectangularBadge()
-            case .accessoryInline:
-                Label("Telegram", systemImage: "paperplane.fill")
+            case .systemSmall:
+                SquareTelegramTile()
             default:
-                CircularBadge()
+                LockScreenIconTile()
             }
         }
-        .widgetURL(launchURL)
+        .widgetURL(URL(string: "telegramlockwidget://open")!)
     }
 }
 
-private struct CircularBadge: View {
+private struct LockScreenIconTile: View {
     var body: some View {
         ZStack {
-            AccessoryWidgetBackground()
+            RoundedRectangle(cornerRadius: 9, style: .continuous)
+                .fill(.white.opacity(0.18))
             Image(systemName: "paperplane.fill")
                 .font(.system(size: 22, weight: .bold))
                 .rotationEffect(.degrees(-15))
@@ -53,17 +48,27 @@ private struct CircularBadge: View {
     }
 }
 
-private struct RectangularBadge: View {
+private struct SquareTelegramTile: View {
     var body: some View {
-        HStack(spacing: 8) {
-            Image(systemName: "paperplane.fill")
-                .font(.system(size: 18, weight: .bold))
-                .rotationEffect(.degrees(-15))
-            Text("Telegram")
-                .font(.system(size: 14, weight: .semibold, design: .rounded))
-            Spacer(minLength: 0)
+        ZStack {
+            LinearGradient(
+                colors: [
+                    Color(red: 0.16, green: 0.59, blue: 0.86),
+                    Color(red: 0.09, green: 0.40, blue: 0.71)
+                ],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+
+            VStack(spacing: 10) {
+                Image(systemName: "paperplane.fill")
+                    .font(.system(size: 44, weight: .bold))
+                    .rotationEffect(.degrees(-15))
+                Text("Telegram")
+                    .font(.system(size: 15, weight: .semibold, design: .rounded))
+            }
+            .foregroundStyle(.white)
         }
-        .padding(.horizontal, 4)
     }
 }
 
@@ -72,7 +77,7 @@ struct TelegramWidget: Widget {
 
     var body: some WidgetConfiguration {
         StaticConfiguration(kind: kind, provider: TelegramProvider()) { entry in
-            if #available(iOS 17.0, *) {
+            if #available(iOSApplicationExtension 17.0, *) {
                 TelegramWidgetEntryView()
                     .containerBackground(.clear, for: .widget)
             } else {
@@ -80,11 +85,10 @@ struct TelegramWidget: Widget {
             }
         }
         .configurationDisplayName("Telegram")
-        .description("Tap to open Telegram.")
+        .description("One small tile that opens Telegram.")
         .supportedFamilies([
             .accessoryCircular,
-            .accessoryRectangular,
-            .accessoryInline
+            .systemSmall
         ])
     }
 }
